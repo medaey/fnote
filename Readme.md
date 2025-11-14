@@ -34,7 +34,7 @@ fnote/
 | 🔍 Afficher une note complète | `fnote show 1` |
 | ✅ Marquer une note comme TERMINE / revenir en TODO | `fnote done 1` ou `fnote nodone 1` |
 | 🗑️ Supprimer une note ou la dernière ajoutée | `fnote delete 1` ou `fnote remove` |
-| 💾 Stockage simple en JSON | Toutes les notes sont stockées dans `/var/lib/fnote/fnote.json` |
+| 💾 Stockage simple en JSON | Toutes les notes sont stockées dans `/var/lib/fnote/notes.json` |
 | 🎯 Minimaliste et rapide | Tout fonctionne directement depuis le terminal |
 
 ---
