@@ -18,6 +18,7 @@ fnote/
 ├── fnote.sh          # Script principal
 ├── assets/           # Dossier pour captures ou images
 │   └── fnote_screen.png
+├── LICENSE           # License du projet
 └── README.md         # Documentation du projet
 
 ````
@@ -56,15 +57,14 @@ mkdir -p ~/bin
 cp fnote.sh ~/bin/fnote
 chmod +x ~/bin/fnote
 
-# 4️⃣ S'assurer que ~/bin est dans le PATH (ajouter dans ~/.bashrc si nécessaire)
-echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
-source ~/.bashrc
+# 4️⃣ Créer un lien symbolique pour l'abréviation 'fn'
+ln -sf ~/bin/fnote ~/bin/fn
 
-# ✅ Vous pouvez maintenant utiliser fnote depuis n'importe où :
-# fnote add "Nouvelle note"
-# fnote att 1 "Détail"
-# fnote list
-# fnote show 1
+# ✅ Vous pouvez maintenant utiliser fnote ou son abréviation fn :
+# fnote add "Nouvelle note"    (ou fn add "Nouvelle note")
+# fnote att 1 "Détail"         (ou fn att 1 "Détail")
+# fnote list                   (ou fn list)
+# fnote show 1                 (ou fn show 1)
 ````
 
 ---
@@ -175,5 +175,3 @@ Dernière note supprimée
 ```
 
 ---
-
-> fnote – Minimaliste, rapide et pratique pour le terminal

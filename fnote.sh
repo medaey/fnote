@@ -52,16 +52,25 @@ attach_note() {
 }
 
 show_note() {
-    if [ -z "$1" ]; then
-        jq -r '.[] |
-            "[\(.id)] \(.titre) - " + (if .etat=="TERMINE" then "✅" else "🔄" end) + " - \(.date)",
-            (.details | map("    ✏️ " + .)[]?)' "$STORAGE_FILE"
+    arg="$1"
+
+    # Déterminer le filtre
+    if [[ "$arg" =~ ^[0-9]+$ ]]; then
+        FILTER="select(.id == $arg)"
     else
-        id="$1"
-        jq -r --argjson id "$id" '.[] | select(.id==$id) |
-            "[\(.id)] \(.titre) - " + (if .etat=="TERMINE" then "✅" else "🔄" end) + " - \(.date)",
-            (.details | map("    ✏️ " + .)[]?)' "$STORAGE_FILE"
+        case "$arg" in
+            --all)  FILTER='.' ;;
+            --done) FILTER='select(.etat=="TERMINE")' ;;
+            ""|--todo) FILTER='select(.etat!="TERMINE")' ;;
+            *) echo "ID ou option invalide"; return ;;
+        esac
     fi
+
+    jq -r "
+        .[] | $FILTER |
+        \"[\(.id)] \" + (if .etat==\"TERMINE\" then \"✅\" else \"🔄\" end) + \" \(.date) - \(.titre)\",
+        (.details | map(\"        ✏️ \" + .)[]?)
+    " "$STORAGE_FILE"
 }
 
 
@@ -112,15 +121,38 @@ remove_last_note() {
     echo "Dernière note supprimée"
 }
 
+show_help() {
+    echo "Usage:"
+    echo "  fn | fnote [commande] [options]"
+    echo ""
+    echo "Commandes:"
+    echo "  add <titre>                 Ajouter une note"
+    echo "  attach|att <id> <détail>   Ajouter un détail à une note"
+    echo "  list                        Lister toutes les notes"
+    echo "  show <id>                   Afficher une note"
+    echo "  show --all                  Afficher toutes les notes"
+    echo "  show --done                 Afficher uniquement les notes terminées"
+    echo "  done <id>                   Marquer une note comme terminée"
+    echo "  nodone <id>                 Remettre une note en TODO"
+    echo "  delete|del <id>             Supprimer une note"
+    echo "  remove|rm                   Supprimer la dernière note"
+    echo "  --help|-h                   Afficher cette aide"
+}
+
 # Menu de commande avec alias
 case "$1" in
     add) add_note "$2" ;;
     attach|att) attach_note "$2" "$3" ;;
     show) show_note "$2" ;;
+    --all) show_note --all ;;
+    --done) show_note --done ;;
     list) list_notes ;;
     done) done_note "$2" ;;
     nodone) nodone_note "$2" ;;
     delete|del) delete_note "$2" ;;
     remove|rm) remove_last_note ;;
-    *) echo "Usage: $0 {add|attach|att|show|list|done|nodone|delete|del|remove|rm} ..." ;;
+    --help|-h) show_help ;;
+    "") show_note "" ;;
+    *) echo "Commande inconnue. Utilise fnote --help" ;;
 esac
+
