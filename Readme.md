@@ -177,5 +177,3 @@ Dernière note supprimée
 ---
 
 > fnote – Minimaliste, rapide et pratique pour le terminal
-
-```
