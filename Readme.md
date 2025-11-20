@@ -4,39 +4,19 @@
 [![Bash](https://img.shields.io/badge/bash-🟩-lightgrey)](https://www.gnu.org/software/bash/) 
 [![JSON](https://img.shields.io/badge/json-🟨-lightgrey)](https://www.json.org/)
 
-**fnote** est un gestionnaire de notes minimaliste pour le terminal, conçu pour capturer rapidement des idées et informations, tout en préservant votre flow de travail. Chaque note possède un **ID unique**, un **état**, une **date de création**, et peut contenir des **détails annexes**.
-
 ![Capture d'écran fnote](assets/fnote_screen.png)
+**fnote** est un gestionnaire de notes minimaliste pour le terminal. Il permet de capturer rapidement des idées et informations avec un **ID unique**, un **état** et une **date de création**. Tout est stocké en JSON pour un accès simple et rapide.
 
----
-
-## 🗂️ Structure du projet
+🗂️ Structure du projet
 
 ```
-
 fnote/
-├── fnote.sh          # Script principal
-├── assets/           # Dossier pour captures ou images
+├── fnote.sh             # Script principal
+├── assets/              # Dossier pour captures d'écran
 │   └── fnote_screen.png
-├── LICENSE           # License du projet
-└── README.md         # Documentation du projet
-
-````
-
----
-
-## ⚡ Fonctionnalités principales
-
-| Fonctionnalité | Exemple d’utilisation |
-|----------------|---------------------|
-| 🆔 ID auto-incrémenté et date automatique | `fnote add "Nouvelle note"` |
-| ✏️ Ajouter des détails annexes | `fnote att 1 "Installer logiciel XYZ"` |
-| 📋 Lister les notes | `fnote list` |
-| 🔍 Afficher une note complète | `fnote show 1` |
-| ✅ Marquer une note comme TERMINE / revenir en TODO | `fnote done 1` ou `fnote nodone 1` |
-| 🗑️ Supprimer une note ou la dernière ajoutée | `fnote delete 1` ou `fnote remove` |
-| 💾 Stockage simple en JSON | Toutes les notes sont stockées dans `/var/lib/fnote/notes.json` |
-| 🎯 Minimaliste et rapide | Tout fonctionne directement depuis le terminal |
+├── LICENSE              # Licence du projet
+└── README.md            # Documentation
+```
 
 ---
 
@@ -60,118 +40,98 @@ chmod +x ~/bin/fnote
 # 4️⃣ Créer un lien symbolique pour l'abréviation 'fn'
 ln -sf ~/bin/fnote ~/bin/fn
 
-# ✅ Vous pouvez maintenant utiliser fnote ou son abréviation fn :
+# ✅ Utilisation :
 # fnote add "Nouvelle note"    (ou fn add "Nouvelle note")
-# fnote att 1 "Détail"         (ou fn att 1 "Détail")
-# fnote list                   (ou fn list)
 # fnote show 1                 (ou fn show 1)
+# fnote ls                     (ou fn ls)
 ````
 
 ---
 
 ## 🛠️ Commandes principales
 
-| Commande               | Alias | Description                                      |
-| ---------------------- | ----- | ------------------------------------------------ |
-| `add "titre"`          | —     | Créer une nouvelle note avec titre               |
-| `attach <id> "détail"` | `att` | Ajouter un détail à une note existante           |
-| `show [id]`            | —     | Afficher toutes les notes ou une note spécifique |
-| `list`                 | —     | Lister toutes les notes (titre + état)           |
-| `done <id>`            | —     | Marquer une note comme terminée                  |
-| `nodone <id>`          | —     | Remettre une note en TODO                        |
-| `delete <id>`          | `del` | Supprimer une note                               |
-| `remove`               | `rm`  | Supprimer la dernière note ajoutée               |
+| Commande        | Alias | Description                              |
+| --------------- | ----- | ---------------------------------------- |
+| `a "titre"`     | —     | Ajouter une note avec le texte fourni    |
+| `show <id>`     | —     | Afficher le détail d'une note            |
+| `ls`            | —     | Lister les notes actives (TODO)          |
+| `ls --all`      | —     | Lister toutes les notes (TODO + DONE)    |
+| `s <id> <etat>` | —     | Changer l'état d'une note (TODO ou DONE) |
+| `e <id>`        | —     | Éditer le texte d'une note via $EDITOR   |
+| `rm <id>`       | —     | Supprimer une note                       |
+| `rmlast`        | —     | Supprimer la dernière note ajoutée       |
 
 ---
 
 ## 💾 Stockage
 
-* Toutes les notes sont stockées dans **`/var/lib/fnote/fnote.json`**
+* Toutes les notes sont dans **`/var/lib/fnote/notes.json`**
 * Format simple et lisible
-* Facile à éditer manuellement si nécessaire
+* Édition manuelle possible si nécessaire
 
 ---
 
 ## 🎯 Pourquoi fnote ?
 
-* Capture rapide des idées avec **ID unique**
-* Organisation simple et efficace, sans distractions
-* Gestion des **détails annexes** pour chaque note
-* Parfait pour **préserver le flow** et ne rien oublier
+* Pour **capturer rapidement les tâches en cours** sans interrompre le travail.
+* Pour **ne rien oublier**, même en cas d’interruptions ou d’incidents.
+* Minimaliste et rapide : tout se fait depuis le terminal, sans distraction.
+* Chaque note est **identifiable par un ID unique** et peut être marquée **TODO ou DONE**.
+* Idéal pour les sysadmins ou toute personne gérant plusieurs tâches simultanément.
 
 ---
 
-## 🔧 Personnalisation
+## 📌 Exemples d’utilisation
 
-* Modifier les **emojis** pour les états DONE/TO DO dans `show_note()`
-* Adapter la mise en page des détails ou le style d’affichage selon vos préférences
-
----
-
-## 📌 Exemple d’utilisation
-
-### Créer une note
+### Ajouter une note
 
 ```bash
 $ fnote add "Refaire salle informatique"
-Note 1 créée le 2025-11-14T21:20
+Note 1 ajoutée
 ```
 
-**Résultat :**
-
-```
-[1] Refaire salle informatique - 🔄 - 2025-11-14T21:20
-```
-
-### Ajouter des détails
+### Lister les notes
 
 ```bash
-$ fnote att 1 "Installer logiciel XYZ"
-$ fnote att 1 "Vérifier licence XXXXX-XXXX-XXX"
+$ fnote ls
+[1] (TODO) - Refaire salle informatique
 ```
 
-**Résultat :**
-
-```
-[1] Refaire salle informatique - 🔄 - 2025-11-14T21:20
-    ✏️ Installer logiciel XYZ
-    ✏️ Vérifier licence XXXXX-XXXX-XXX
-```
-
-### Lister toutes les notes
+### Marquer comme terminée
 
 ```bash
-$ fnote list
-[1] Refaire salle informatique - TODO
-[2] Acheter nouveau câble réseau - EN COURS
-```
-
-### Marquer comme terminé
-
-```bash
-$ fnote done 1
-Note 1 marquée comme TERMINE
+$ fnote s 1 DONE
+Note 1 → DONE
 ```
 
 ### Revenir en TODO
 
 ```bash
-$ fnote nodone 1
-Note 1 remise en TODO
+$ fnote s 1 TODO
+Note 1 → TODO
+```
+
+### Afficher une note
+
+```bash
+$ fnote show 1
+ID: 1
+Texte: Refaire salle informatique
+État: TODO
+Créée: 2025-11-20T02:14:59
+Modifiée: 2025-11-20T02:14:59
 ```
 
 ### Supprimer une note
 
 ```bash
-$ fnote delete 2
-Note 2 supprimée
+$ fnote rm 1
+Note 1 supprimée
 ```
 
 ### Supprimer la dernière note
 
 ```bash
-$ fnote remove
+$ fnote rmlast
 Dernière note supprimée
 ```
-
----
