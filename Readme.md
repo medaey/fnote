@@ -24,16 +24,17 @@ fnote/
 ---
 ## 🚀 Installation
 
-Clonez le repo et rendez le script exécutable :
+Installation rapide :
+
+via `curl`
 
 ```bash
-git clone https://github.com/medaey/fnote.git
-cd fnote
-chmod +x fnote.sh
-sudo mv fnote.sh /usr/local/bin/fn
+curl -L https://raw.githubusercontent.com/medaey/fnote/main/fnote.sh -o /usr/local/bin/fn && chmod +x /usr/local/bin/fn
 ```
 
-Vous pouvez maintenant utiliser la commande `fn`.
+Ou avec `wget` :
+
+Vous pouvez maintenant utiliser la commande `fn` directement depuis le terminal.
 
 ---
 ## 🧠 Philosophie
