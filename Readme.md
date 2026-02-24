@@ -10,8 +10,8 @@ Capture vos idées instantanément depuis le terminal.
 Pas de gestion, pas de TODO complexe, juste **votre cerveau → fichier JSON**.
 
 ---
+## 🗂️ Structure du projet
 
-## 🗂️ Structure du projet
 ```
 fnote/
 ├── fnote.sh             # Script principal
@@ -22,7 +22,6 @@ fnote/
 ```
 
 ---
-
 ## 🚀 Installation
 
 Clonez le repo et rendez le script exécutable :
@@ -37,7 +36,6 @@ sudo mv fnote.sh /usr/local/bin/fn
 Vous pouvez maintenant utiliser la commande `fn`.
 
 ---
-
 ## 🧠 Philosophie
 
 fnote est conçu pour capturer vos pensées en **1 seconde**.
@@ -46,8 +44,8 @@ Pas d’organisation, pas de catégories, juste **note rapide et minimaliste.**
 > Un brain-dump minimaliste pour le terminal.
 
 ---
+## ⚡ Commandes
 
-## ⚡ Commandes
 | Commande            | Description                     |
 | ------------------- | ------------------------------- |
 | `fn "texte"`        | Ajouter une note rapide         |
@@ -57,7 +55,6 @@ Pas d’organisation, pas de catégories, juste **note rapide et minimaliste.**
 | `fn -h` ou `--help` | Afficher ce guide rapide        |
 
 ---
-
 ## 📂 Stockage
 
 Toutes les notes sont sauvegardées dans :
@@ -77,8 +74,8 @@ Chaque note contient la date et l’heure :
 ```
 
 ---
-
 ## 💎 Avantages
+
 - Capture **ultra rapide**
 - Ultra minimaliste
 - Stockage JSON → hackable et exportable facilement
@@ -87,8 +84,8 @@ Chaque note contient la date et l’heure :
 - Aucun plugin ou dépendance
 
 ---
-
 ## 🌟 Exemple d’utilisation
+
 ```bash
 # Ajouter une note
 fn "Acheter du lait"
@@ -104,22 +101,22 @@ fn -c
 ```
 
 ---
-
-## 📤 Export optionnel
+## 📤 Export optionnel
 
 Si vous voulez exploiter vos notes JSON, vous pouvez utiliser `jq` :
-```json
+
+```bash
 # Exporter toutes les notes en CSV
 jq -r '.[] | [.date, .note] | @csv' ~/.fnote/dump.json > notes.csv
 
 # Rechercher un mot-clé et afficher la date
 jq -r --arg keyword "lait" '.[] | select(.note | test($keyword;"i")) | "\(.date) | \(.note)"' ~/.fnote/dump.json
 ```
+
 > Note : l’export est optionnel, le cœur de fnote reste la capture ultra rapide.
 
 ---
-
-## 📝 Contribuer
+## 📝 Contribuer
 
 Si vous voulez améliorer fnote :
 
@@ -129,7 +126,6 @@ Si vous voulez améliorer fnote :
 - Toute amélioration doit augmenter la rapidité ou la simplicité, jamais la complexité
 
 ---
-
-## 📌 Licence
+## 📌 Licence
 
 MIT License
