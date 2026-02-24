@@ -1,13 +1,12 @@
 # fnote
 
-**fnote – The fastest brain-dump CLI for Linux (JSON storage)**  
+**fnote – The fastest brain-dump CLI for Linux (JSONL storage)**  
 
 [![Version](https://img.shields.io/badge/version-26.2.24.224-blue.svg)](https://github.com/medaey/fnote) 
 [![Bash](https://img.shields.io/badge/bash-🟩-lightgrey)](https://www.gnu.org/software/bash/) 
 [![JSON](https://img.shields.io/badge/json-🟨-lightgrey)](https://www.json.org/)
 
-Capture vos idées instantanément depuis le terminal.  
-Pas de gestion, pas de TODO complexe, juste **votre cerveau → fichier JSON**.
+Capture vos idées instantanément depuis le terminal. Pas de gestion, pas de TODO complexe, juste **votre cerveau → fichier JSON**.
 
 ![Exemple fnote](assets/fnote_screen.png)
 
