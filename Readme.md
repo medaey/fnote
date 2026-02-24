@@ -1,5 +1,5 @@
 # fnote
-
+fnote – Minimal CLI Note Manager for Linux (Bash + JSON)
 [![Version](https://img.shields.io/badge/version-1.0-blue.svg)](https://github.com/medaey/fnote) 
 [![Bash](https://img.shields.io/badge/bash-🟩-lightgrey)](https://www.gnu.org/software/bash/) 
 [![JSON](https://img.shields.io/badge/json-🟨-lightgrey)](https://www.json.org/)
