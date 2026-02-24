@@ -19,7 +19,7 @@ show_help() {
 
 # Aucun argument → afficher dernières notes
 if [ $# -eq 0 ]; then
-    tail -n 20 "$FILE" | jq '.'
+    tail -n 20 "$FILE"
     exit 0
 fi
 
