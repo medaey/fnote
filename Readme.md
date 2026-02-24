@@ -9,17 +9,7 @@
 Capture vos idées instantanément depuis le terminal.  
 Pas de gestion, pas de TODO complexe, juste **votre cerveau → fichier JSON**.
 
----
-## 🗂️ Structure du projet
-
-```
-fnote/
-├── fnote.sh             # Script principal
-├── assets/              # Dossier pour captures d'écran
-│   └── fnote_screen.png
-├── LICENSE              # Licence du projet
-└── README.md            # Documentation
-```
+![Exemple fnote](assets/fnote_screen.png)
 
 ---
 ## 🚀 Installation
@@ -34,9 +24,27 @@ curl -L https://raw.githubusercontent.com/medaey/fnote/main/fnote.sh -o /usr/loc
 
 Ou avec `wget` :
 
-Vous pouvez maintenant utiliser la commande `fn` directement depuis le terminal.
+```bash
+wget -O /usr/local/bin/fn https://raw.githubusercontent.com/medaey/fnote/main/fnote.sh && chmod +x /usr/local/bin/fn
+```
+
+> Vous pouvez maintenant utiliser la commande `fn` directement depuis le terminal.
 
 ---
+
+## 🗂️ Structure du projet
+
+```
+fnote/
+├── fnote.sh             # Script principal
+├── assets/              # Dossier pour captures d'écran
+│   └── fnote_screen.png
+├── LICENSE              # Licence du projet
+└── README.md            # Documentation
+```
+
+---
+
 ## 🧠 Philosophie
 
 fnote est conçu pour capturer vos pensées en **1 seconde**.
