@@ -1,40 +1,35 @@
 #!/bin/bash
 
 DIR="$HOME/.fnote"
-FILE="$DIR/dump.json"
+FILE="$DIR/dump.jsonl"
 
 mkdir -p "$DIR"
 touch "$FILE"
 
-# Crée un tableau JSON vide si fichier vide
-if [ ! -s "$FILE" ]; then
-    echo "[]" > "$FILE"
-fi
-
 show_help() {
-    echo "fnote – ultra-fast brain-dump CLI (JSON storage)"
+    echo "fnote – ultra-fast brain-dump CLI (JSON Lines storage)"
     echo
     echo "Usage:"
-    echo "  fnote \"texte\"      → ajouter une note"
-    echo "  fnote               → afficher 20 dernières notes"
-    echo "  fnote -s mot        → rechercher une note"
-    echo "  fnote -c            → vider toutes les notes"
-    echo "  fnote -h | --help   → afficher ce message"
+    echo "  fn \"texte\"      → ajouter une note"
+    echo "  fn               → afficher 20 dernières notes"
+    echo "  fn -s mot        → rechercher une note"
+    echo "  fn -c            → vider toutes les notes"
+    echo "  fn -h | --help   → afficher ce message"
 }
 
 # Aucun argument → afficher dernières notes
 if [ $# -eq 0 ]; then
-    jq '.[-20:] | reverse' "$FILE"
+    tail -n 20 "$FILE" | jq '.'
     exit 0
 fi
 
 case "$1" in
     -s)
         shift
-        jq --arg search "$*" '[.[] | select(.note | test($search;"i"))]' "$FILE"
+        jq -c --arg search "$*" 'select(.note | test($search;"i"))' "$FILE"
         ;;
     -c)
-        echo "[]" > "$FILE"
+        > "$FILE"
         echo "✔ cleared"
         ;;
     -h|--help)
@@ -43,8 +38,7 @@ case "$1" in
     *)
         DATE=$(date '+%Y-%m-%d %H:%M')
         NOTE="$*"
-        TMP=$(mktemp)
-        jq --arg d "$DATE" --arg n "$NOTE" '. += [{"date": $d, "note": $n}]' "$FILE" > "$TMP" && mv "$TMP" "$FILE"
+        echo "{\"date\":\"$DATE\",\"note\":\"$NOTE\"}" >> "$FILE"
         echo "✔ saved"
         ;;
 esac

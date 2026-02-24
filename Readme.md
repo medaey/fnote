@@ -60,17 +60,14 @@ Pas d’organisation, pas de catégories, juste **note rapide et minimaliste.**
 Toutes les notes sont sauvegardées dans :
 
 ```
-~/.fnote/dump.json
+~/.fnote/dump.jsonl
 ```
 
-Chaque note contient la date et l’heure :
+Exemple de contenu (JSON Lines / one-line par note) :
 ```json
-[
-  {
-    "date": "2026-02-24 15:02",
-    "note": "Idée pour un projet SaaS"
-  }
-]
+{"date":"2026-02-24 15:02","note":"Idée pour un projet SaaS"}
+{"date":"2026-02-24 15:15","note":"Penser à acheter du lait"}
+{"date":"2026-02-24 15:20","note":"Brainstorm pour fnote"}
 ```
 
 ---
@@ -107,13 +104,12 @@ Si vous voulez exploiter vos notes JSON, vous pouvez utiliser `jq` :
 
 ```bash
 # Exporter toutes les notes en CSV
-jq -r '.[] | [.date, .note] | @csv' ~/.fnote/dump.json > notes.csv
+jq -r '[.date, .note] | @csv' ~/.fnote/dump.jsonl > notes.csv
 
-# Rechercher un mot-clé et afficher la date
-jq -r --arg keyword "lait" '.[] | select(.note | test($keyword;"i")) | "\(.date) | \(.note)"' ~/.fnote/dump.json
+# Exporter les notes contenant un mot-clé
+jq -c --arg keyword "lait" 'select(.note | test($keyword;"i"))' ~/.fnote/dump.jsonl
 ```
-
-> Note : l’export est optionnel, le cœur de fnote reste la capture ultra rapide.
+> Note : l’export est **optionnel**, le cœur de fnote reste la capture **ultra rapide et minimaliste**.
 
 ---
 ## 📝 Contribuer
