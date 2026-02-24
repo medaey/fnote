@@ -2,7 +2,7 @@
 
 **fnote – The fastest brain-dump CLI for Linux (JSON storage)**  
 
-[![Version](https://img.shields.io/badge/version-26.2.24.224--blue.svg)](https://github.com/medaey/fnote) 
+[![Version](https://img.shields.io/badge/version-26.2.24.224-blue.svg)](https://github.com/medaey/fnote) 
 [![Bash](https://img.shields.io/badge/bash-🟩-lightgrey)](https://www.gnu.org/software/bash/) 
 [![JSON](https://img.shields.io/badge/json-🟨-lightgrey)](https://www.json.org/)
 
