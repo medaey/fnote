@@ -18,13 +18,13 @@ Installation rapide :
 via `curl`
 
 ```bash
-curl -L https://raw.githubusercontent.com/medaey/fnote/main/fnote.sh -o /usr/local/bin/fn && chmod +x /usr/local/bin/fn
+sudo curl -L https://raw.githubusercontent.com/medaey/fnote/main/fnote.sh -o /usr/local/bin/fn && sudo chmod +x /usr/local/bin/fn
 ```
 
 Ou avec `wget` :
 
 ```bash
-wget -O /usr/local/bin/fn https://raw.githubusercontent.com/medaey/fnote/main/fnote.sh && chmod +x /usr/local/bin/fn
+sudo wget -O /usr/local/bin/fn https://raw.githubusercontent.com/medaey/fnote/main/fnote.sh && sudo chmod +x /usr/local/bin/fn
 ```
 
 > Vous pouvez maintenant utiliser la commande `fn` directement depuis le terminal.
