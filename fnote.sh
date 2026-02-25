@@ -41,4 +41,11 @@ case "$1" in
         echo "{\"date\":\"$DATE\",\"note\":\"$NOTE\"}" >> "$FILE"
         echo "✔ saved"
         ;;
+    *)
+        DATE=$(date '+%Y-%m-%d %H:%M')
+        NOTE="$*"
+        NOTE="${NOTE//\"/\'}" # Remplacer tous les guillemets " par des apostrophes '
+        echo "{\"date\":\"$DATE\",\"note\":\"$NOTE\"}" >> "$FILE"
+        echo "✔ saved"
+    ;;
 esac
