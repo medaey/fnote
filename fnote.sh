@@ -12,6 +12,7 @@ show_help() {
     echo "Usage:"
     echo "  fn \"texte\"      → ajouter une note"
     echo "  fn               → afficher 20 dernières notes"
+    echo "                     (les lignes commentées par # sont ignorées)"
     echo "  fn -s mot        → rechercher une note"
     echo "  fn -c            → vider toutes les notes"
     echo "  fn -h | --help   → afficher ce message"
