@@ -10,12 +10,12 @@ show_help() {
     echo "fnote – ultra-fast brain-dump CLI (JSON Lines storage)"
     echo
     echo "Usage:"
-    echo "  fn \"texte\"                 → ajouter une note"
+    echo "  fn \"texte\"                → ajouter une note"
     echo "  fn                          → afficher 20 dernières notes"
     echo "                                (les lignes commentées par # sont ignorées)"
     echo "  fn -s mot | --search mot    → rechercher une note (insensible à la casse)"
     echo "  fn -c     | --clear         → vider toutes les notes"
-    echo "  fn -h | --help              → afficher ce message"
+    echo "  fn -h     | --help          → afficher ce message"
 }
 
 # Aucun argument → afficher dernières notes (ignorer les commentaires)
