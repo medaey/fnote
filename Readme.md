@@ -8,9 +8,25 @@
 
 Capture vos idées instantanément depuis le terminal. Pas de gestion, pas de TODO complexe, juste **votre cerveau → fichier JSON**.
 
-![Exemple fnote](assets/fnote_screen.png)
-
 ---
+
+## 🌟 Exemple d’utilisation
+
+```bash
+# Ajouter une note
+fn Acheter du lait
+
+# Voir les 20 dernières notes
+fn
+
+# Rechercher un mot
+fn -s lait
+
+# Vider toutes les notes
+fn -c
+```
+---
+
 ## 🚀 Installation
 
 Installation rapide :
@@ -84,23 +100,6 @@ Exemple de contenu (JSON Lines / one-line par note) :
 - Compatible avec grep, fzf, awk, scripts shell
 - Compatible avec jq, scripts shell, Python, Node.js
 - Aucun plugin ou dépendance
-
----
-## 🌟 Exemple d’utilisation
-
-```bash
-# Ajouter une note
-fn "Acheter du lait"
-
-# Voir les 20 dernières notes
-fn
-
-# Rechercher un mot
-fn -s lait
-
-# Vider toutes les notes
-fn -c
-```
 
 ---
 ## 📤 Export optionnel
