@@ -10,12 +10,21 @@ show_help() {
     echo "fnote – ultra-fast brain-dump CLI (JSON Lines storage)"
     echo
     echo "Usage:"
-    echo "  fn \"texte\"                → ajouter une note"
-    echo "  fn                          → afficher 20 dernières notes"
+    echo "  fn \"texte\"                 ajouter une note"
+    echo "  fn                          afficher 20 dernières notes"
     echo "                                (les lignes commentées par # sont ignorées)"
-    echo "  fn -s mot | --search mot    → rechercher une note (insensible à la casse)"
-    echo "  fn -c     | --clear         → vider toutes les notes"
-    echo "  fn -h     | --help          → afficher ce message"
+    echo "  -s, --search MOT            rechercher une note (insensible à la casse)"
+    echo "  -c, --clear                 vider toutes les notes"
+    echo "  --help                      afficher ce message"
+    echo
+    echo "Notes:"
+    echo "  Les lignes commençant par # dans dump.jsonl sont considérées comme des"
+    echo "  commentaires et ne seront pas affichées par la commande fn."
+    echo
+    echo "Exemples:"
+    echo "  fn \"Acheter du lait\"        ajoute une note"
+    echo "  fn -s lait                   recherche toutes les notes contenant 'lait'"
+    echo "  fn --clear                   supprime toutes les notes"
 }
 
 # Aucun argument → afficher dernières notes (ignorer les commentaires)
@@ -33,7 +42,7 @@ case "$1" in
         > "$FILE"
         echo "✔ cleared"
         ;;
-    -h|--help)
+    --help)
         show_help
         ;;
     *)
