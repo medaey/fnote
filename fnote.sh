@@ -20,16 +20,14 @@ show_help() {
 
 # Aucun argument → afficher dernières notes (ignorer les commentaires)
 if [ $# -eq 0 ]; then
-    # Affiche les 20 dernières notes dont .note ne commence pas par #
-    grep -v '^#' "$FILE" | tail -n 20
+    grep -v '^#' "$FILE" | tail -n 20 # Affiche les 20 dernières notes dont .note ne commence pas par #
     exit 0
 fi
 
 case "$1" in
     -s)
         shift
-        # Recherche simple, insensible à la casse
-        grep -i -- "$*" "$FILE"
+        grep -i -- "$*" "$FILE" # Recherche simple, insensible à la casse
         ;;
     -c)
         > "$FILE"
@@ -44,11 +42,4 @@ case "$1" in
         echo "{\"date\":\"$DATE\",\"note\":\"$NOTE\"}" >> "$FILE"
         echo "✔ saved"
         ;;
-    *)
-        DATE=$(date '+%Y-%m-%d %H:%M')
-        NOTE="$*"
-        NOTE="${NOTE//\"/\'}" # Remplacer tous les guillemets " par des apostrophes '
-        echo "{\"date\":\"$DATE\",\"note\":\"$NOTE\"}" >> "$FILE"
-        echo "✔ saved"
-    ;;
 esac
