@@ -20,7 +20,7 @@ show_help() {
 # Aucun argument → afficher dernières notes (ignorer les commentaires)
 if [ $# -eq 0 ]; then
     # Affiche les 20 dernières notes dont .note ne commence pas par #
-    grep -v '"note":"#' "$FILE" | tail -n 20
+    grep -v '^#' "$FILE" | tail -n 20
     exit 0
 fi
 
