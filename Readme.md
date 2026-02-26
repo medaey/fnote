@@ -30,16 +30,13 @@ sudo wget -O /usr/local/bin/fn https://raw.githubusercontent.com/medaey/fnote/ma
 > Vous pouvez maintenant utiliser la commande `fn` directement depuis le terminal.
 
 ---
-
 ## 🗂️ Structure du projet
 
 ```
 fnote/
-├── fnote.sh             # Script principal
-├── assets/              # Dossier pour captures d'écran
-│   └── fnote_screen.png
-├── LICENSE              # Licence du projet
-└── README.md            # Documentation
+├── fnote.sh      # Script principal
+├── LICENSE       # Licence du projet
+└── README.md     # Documentation
 ```
 
 ---
@@ -53,14 +50,14 @@ Pas d’organisation, pas de catégories, juste **note rapide et minimaliste.**
 
 ---
 ## ⚡ Commandes
-
-| Commande            | Description                     |
-| ------------------- | ------------------------------- |
-| `fn "texte"`        | Ajouter une note rapide         |
-| `fn`                | Afficher les 20 dernières notes |
-| `fn -s mot`         | Rechercher un mot ou expression |
-| `fn -c`             | Vider toutes les notes          |
-| `fn -h` ou `--help` | Afficher ce guide rapide        |
+| Commande                                        | Description                                 |
+| ----------------------------------------------- | ------------------------------------------- |
+| `fn "texte"`                                    | Ajouter une note rapide                     |
+| `fn`                                            | Afficher les 20 dernières notes             |
+| *(les lignes commençant par `#` sont ignorées)* |                                             |
+| `fn -s mot` ou `fn --search mot`                | Rechercher une note (insensible à la casse) |
+| `fn -c` ou `fn --clear`                         | Vider toutes les notes                      |
+| `fn -h` ou `fn --help`                          | Afficher l’aide                             |
 
 ---
 ## 📂 Stockage
