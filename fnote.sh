@@ -17,16 +17,18 @@ show_help() {
     echo "  fn -h | --help   → afficher ce message"
 }
 
-# Aucun argument → afficher dernières notes
+# Aucun argument → afficher dernières notes (ignorer les commentaires)
 if [ $# -eq 0 ]; then
-    tail -n 20 "$FILE"
+    # Affiche les 20 dernières notes dont .note ne commence pas par #
+    grep -v '"note":"#' "$FILE" | tail -n 20
     exit 0
 fi
 
 case "$1" in
     -s)
         shift
-        jq -c --arg search "$*" 'select(.note | test($search;"i"))' "$FILE"
+        # Recherche simple, insensible à la casse
+        grep -i -- "$*" "$FILE"
         ;;
     -c)
         > "$FILE"
