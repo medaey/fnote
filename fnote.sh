@@ -14,7 +14,6 @@ show_help() {
     echo "  fn                    afficher les 20 dernières notes"
     echo "  fn -s MOT            rechercher"
     echo "  fn edit              ouvrir la base dans nano"
-    echo "  fn -c                vider la base"
     echo "  fn --help            aide"
 }
 
@@ -34,11 +33,6 @@ case "$1" in
     -s|--search)
         shift
         grep -i -- "$*" "$FILE"
-        ;;
-
-    -c|--clear)
-        > "$FILE"
-        echo "✔ cleared"
         ;;
 
     edit)
