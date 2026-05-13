@@ -49,8 +49,11 @@ case "$1" in
     *)
         DATE=$(date '+%Y-%m-%d %H:%M')
         NOTE="$*"
-        NOTE="${NOTE//\"/\'}"   # protéger le JSON
-        echo "{\"date\":\"$DATE\",\"note\":\"$NOTE\"}" >> "$FILE"
+        NOTE="${NOTE//\"/\'}"   # protéger les guillemets
+
+        STATUS="todo"
+
+        echo "{\"status\":\"$STATUS\",\"date\":\"$DATE\",\"note\":\"$NOTE\"}" >> "$FILE"
         echo "✔ saved"
-        ;;
+    ;;
 esac
