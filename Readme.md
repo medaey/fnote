@@ -6,7 +6,6 @@
 [![Storage](https://img.shields.io/badge/storage-JSONL-yellow.svg)](https://jsonlines.org/)
 
 ---
-
 ## ⚡ Overview
 
 fnote is a minimal CLI tool designed to capture **operational logs directly from the terminal**.
@@ -21,6 +20,11 @@ It is designed for:
 
 Everything is stored locally in a **single JSONL file**, with optional visual filtering using comments.
 
+---
+## 🚀 Installation
+```bash
+sudo curl -L https://raw.githubusercontent.com/medaey/fnote/main/fnote.sh -o /usr/local/bin/fn && sudo chmod 755 /usr/local/bin/fn
+```
 ---
 
 ## 📂 Storage
