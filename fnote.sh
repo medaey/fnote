@@ -19,7 +19,7 @@ show_help() {
 
 # ---------- NO ARG ----------
 if [ $# -eq 0 ]; then
-    tail -n 20 "$FILE" | grep -v "#"
+    cat "$FILE" | grep -v "#"
     exit 0
 fi
 
