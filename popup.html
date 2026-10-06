@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>fnote GUI</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <img src="icons/icon48.png" alt="" class="brand-logo">
+        <div class="brand-text">
+          <h1>fnote</h1>
+          <span class="brand-sub" id="summary">Aucune note</span>
+        </div>
+      </div>
+      <button id="btn-export" class="btn-ghost" title="Exporter dump.jsonl">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exporter
+      </button>
+    </header>
+
+    <div id="status-message" class="toast" role="status"></div>
+
+    <div class="composer">
+      <input type="text" id="new-note-input" placeholder="Nouvelle note…  [TAG] Texte" autocomplete="off" spellcheck="false">
+      <button id="btn-add" class="btn-primary" title="Ajouter la note" aria-label="Ajouter">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+
+    <div class="segmented" role="tablist">
+      <button class="seg-btn active" data-tab="active" role="tab">
+        En cours <span class="badge" id="count-active">0</span>
+      </button>
+      <button class="seg-btn" data-tab="done" role="tab">
+        Traitées <span class="badge" id="count-done">0</span>
+      </button>
+    </div>
+
+    <main class="content">
+      <div id="list-active" class="note-list active"></div>
+      <div id="list-done" class="note-list"></div>
+    </main>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
