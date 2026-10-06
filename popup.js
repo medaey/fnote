@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let notes = [];
   let editingIndex = null;
   let toastTimer = null;
+  let skipAnim = false;
+  let dragged = null;
 
   const listActive = document.getElementById('list-active');
   const listDone = document.getElementById('list-done');
@@ -23,7 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     delete: svg('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'),
     close: svg('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'),
     inbox: svg('<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>', 1.5),
-    done: svg('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>', 1.5)
+    done: svg('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>', 1.5),
+    grip: svg('<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>', 2.5)
   };
 
   function showStatus(text, isError = false) {
@@ -136,7 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     notes.forEach((item, index) => {
       const div = document.createElement('div');
-      div.className = 'note-item' + (item.done ? ' is-done' : '');
+      div.className = 'note-item' + (item.done ? ' is-done' : '') + (skipAnim ? ' no-anim' : '');
+      div.dataset.index = index;
 
       if (editingIndex === index) {
         div.innerHTML = `
@@ -159,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
           (m, tag) => `<span class="note-tag" style="--h:${tagHue(tag)}">${tag}</span>`);
 
         div.innerHTML = `
+          <button class="drag-handle" title="Glisser pour réorganiser (ou ↑ ↓ au clavier)" aria-label="Déplacer la note" data-index="${index}">${icons.grip}</button>
           <div class="note-content">
             <div class="note-text-display" data-action="start-edit" data-index="${index}">${formattedText}</div>
             <div class="note-date">${escapeHtml(item.date)}</div>
@@ -261,6 +266,118 @@ document.addEventListener('DOMContentLoaded', () => {
       notes.splice(index, 1);
       render(true);
     }
+  });
+
+
+  // ---------- Réorganisation des notes ----------
+  // On réordonne uniquement les notes du même état (en cours / traitées) :
+  // elles reprennent les "emplacements" qu'elles occupaient dans le tableau,
+  // l'autre liste n'est pas touchée.
+  function applyOrder(done, newIndexOrder) {
+    const slots = [];
+    notes.forEach((n, i) => { if (n.done === done) slots.push(i); });
+    const old = notes.slice();
+    newIndexOrder.forEach((oldIdx, k) => { notes[slots[k]] = old[oldIdx]; });
+  }
+
+  function moveNote(index, dir) {
+    const done = notes[index].done;
+    let j = index + dir;
+    while (j >= 0 && j < notes.length && notes[j].done !== done) j += dir;
+    if (j < 0 || j >= notes.length) return;
+    [notes[index], notes[j]] = [notes[j], notes[index]];
+    editingIndex = null;
+    skipAnim = true;
+    render(true);
+    skipAnim = false;
+    const handle = document.querySelector(`.drag-handle[data-index="${j}"]`);
+    if (handle) handle.focus();
+  }
+
+  const contentEl = document.querySelector('.content');
+
+  // Le glisser n'est autorisé que depuis la poignée (le reste de la note
+  // reste cliquable / sélectionnable pour l'édition).
+  document.addEventListener('mousedown', (e) => {
+    const handle = e.target.closest('.drag-handle');
+    if (handle) handle.closest('.note-item').draggable = true;
+  });
+  document.addEventListener('mouseup', () => {
+    document.querySelectorAll('.note-item[draggable="true"]').forEach(el => { el.draggable = false; });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const handle = e.target.closest && e.target.closest('.drag-handle');
+    if (!handle) return;
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      moveNote(parseInt(handle.dataset.index, 10), e.key === 'ArrowUp' ? -1 : 1);
+    }
+  });
+
+  document.addEventListener('dragstart', (e) => {
+    const item = e.target.closest && e.target.closest('.note-item');
+    if (!item || !item.draggable) return;
+    dragged = item;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', item.dataset.index);
+    e.dataTransfer.setDragImage(item, 20, 20);
+    requestAnimationFrame(() => item.classList.add('dragging'));
+  });
+
+  contentEl.addEventListener('dragover', (e) => {
+    if (!dragged) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    const list = dragged.parentElement;
+
+    // Défilement automatique près des bords
+    const r = contentEl.getBoundingClientRect();
+    if (e.clientY < r.top + 36) contentEl.scrollTop -= 10;
+    else if (e.clientY > r.bottom - 36) contentEl.scrollTop += 10;
+
+    // Trouver la note devant laquelle insérer
+    const siblings = [...list.querySelectorAll('.note-item:not(.dragging)')];
+    let before = null;
+    for (const el of siblings) {
+      const b = el.getBoundingClientRect();
+      if (e.clientY < b.top + b.height / 2) { before = el; break; }
+    }
+    if (before) {
+      if (dragged.nextElementSibling !== before) list.insertBefore(dragged, before);
+    } else if (list.lastElementChild !== dragged) {
+      list.appendChild(dragged);
+    }
+  });
+
+  contentEl.addEventListener('drop', (e) => {
+    if (dragged) e.preventDefault();
+  });
+
+  document.addEventListener('dragend', (e) => {
+    if (!dragged) return;
+    const item = dragged;
+    dragged = null;
+    item.draggable = false;
+    item.classList.remove('dragging');
+
+    const cancelled = e.dataTransfer && e.dataTransfer.dropEffect === 'none';
+    const list = item.parentElement;
+    const order = [...list.querySelectorAll('.note-item[data-index]')]
+      .map(el => parseInt(el.dataset.index, 10));
+    const changed = order.some((v, k) => k > 0 && v < order[k - 1]);
+
+    skipAnim = true;
+    if (cancelled || !changed) {
+      render(false);
+    } else {
+      const done = notes[order[0]].done;
+      applyOrder(done, order);
+      editingIndex = null;
+      render(true);
+    }
+    skipAnim = false;
   });
 
   function addNote() {

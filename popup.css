@@ -273,7 +273,7 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -287,6 +287,53 @@ body {
 .note-item:focus-within {
   border-color: var(--border-strong);
   box-shadow: var(--shadow-md);
+}
+
+.note-item.no-anim {
+  animation: none;
+}
+
+.note-item.dragging {
+  opacity: 0.4;
+  border-style: dashed;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.drag-handle {
+  background: transparent;
+  border: none;
+  color: var(--border-strong);
+  width: 18px;
+  height: 28px;
+  margin: -2px 0 0 -6px;
+  border-radius: 6px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.drag-handle .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.note-item:hover .drag-handle {
+  color: var(--text-3);
+}
+
+.drag-handle:hover,
+.drag-handle:focus-visible {
+  background: var(--surface-3);
+  color: var(--text);
+  outline: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 @keyframes pop {

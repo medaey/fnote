@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "fnote GUI",
-  "version": "1.9",
-  "description": "Interface graphique moderne (thème clair, tags colorés) pour le gestionnaire de notes fnote",
+  "name": "fnote",
+  "version": "2.0",
+  "description": "Interface moderne (thème clair, tags colorés, notes réorganisables) pour le gestionnaire de notes fnote",
   "permissions": [
     "storage"
   ],
