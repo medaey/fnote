@@ -117,7 +117,7 @@ Rendez-vous sur le dépôt officiel GitHub du projet :
 Si vous aimez **fnote**, n'hésitez pas à laisser une note ⭐⭐⭐⭐⭐ et un commentaire sur le Chrome Web Store ! Vos retours permettent d'améliorer continuellement l'extension.
 
 Pour toute question, suggestion ou signalement de problème, veuillez ouvrir un *Issue* directement sur la page GitHub du projet :
-🔗 **[https://github.com/medaey/fnote/issues](https://www.google.com/search?q=https://github.com/medaey/fnote/issues)**
+🔗 **[https://github.com/medaey/fnote/issues](https://github.com/medaey/fnote/issues)**
 
 ---
 
