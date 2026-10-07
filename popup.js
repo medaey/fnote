@@ -5,7 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let skipAnim = false;
   let dragged = null;
   let searchQuery = '';
-  const tagFilters = new Set(); // clés de tags (minuscules) cochés — une note passe si elle a AU MOINS UN de ces tags
+  // Tags cochés (clés en minuscules), communs aux deux sections : une note passe
+  // si elle a AU MOINS UN des tags cochés, qu'elle soit « En cours » ou « Traitée ».
+  const tagFilters = new Set();
+  let currentTab = 'active';
   let undoSnapshot = null;
   let undoTimer = null;
 
@@ -77,6 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const tabName = btn.getAttribute('data-tab');
       if (tabName === 'active') listActive.classList.add('active');
       if (tabName === 'done') listDone.classList.add('active');
+
+      currentTab = tabName;
+      skipAnim = true;
+      render(false);
+      skipAnim = false;
     });
   });
 
@@ -180,19 +188,41 @@ document.addEventListener('DOMContentLoaded', () => {
     return matchesSearch(n);
   }
 
-  function renderTagBar() {
-    // Libellés de tous les tags existants (pour garder le tag actif même sans résultat)
-    const labels = new Map();
+  // Tags existants dans chaque section (clé -> libellé).
+  function tagsByTab() {
+    const exist = { active: new Map(), done: new Map() };
     notes.forEach(n => noteTags(n.note).forEach(t => {
       const k = t.toLowerCase();
-      if (k && !labels.has(k)) labels.set(k, t);
+      const m = exist[n.done ? 'done' : 'active'];
+      if (k && !m.has(k)) m.set(k, t);
     }));
-    [...tagFilters].forEach(k => { if (!labels.has(k)) tagFilters.delete(k); });
+    return exist;
+  }
 
-    // Les tags proposés sont ceux des notes qui correspondent à la RECHERCHE
-    // (pas aux tags cochés), pour pouvoir en cocher plusieurs.
+  // Un tag coché qui n'existe plus dans aucune note (ni en cours, ni traitée) est décoché.
+  function pruneTagFilters() {
+    const exist = tagsByTab();
+    [...tagFilters].forEach(k => {
+      if (!exist.active.has(k) && !exist.done.has(k)) tagFilters.delete(k);
+    });
+    return exist;
+  }
+
+  function renderTagBar() {
+    const exist = pruneTagFilters();
+    const isDone = currentTab === 'done';
+    const sel = tagFilters;
+
+    // Les nouvelles notes sont ajoutées en tête du tableau : plus l'indice de la
+    // DERNIÈRE note portant le tag est petit, plus le tag est récent.
+    const created = new Map();
+    notes.forEach((n, i) => noteTags(n.note).forEach(t => created.set(t.toLowerCase(), i)));
+
+    // Seuls les tags ayant au moins une note dans la section affichée (et
+    // correspondant à la recherche) sont proposés, sans tenir compte des tags
+    // cochés, pour pouvoir en cocher plusieurs.
     const counts = new Map();
-    notes.filter(matchesSearch).forEach(n => {
+    notes.filter(n => n.done === isDone && matchesSearch(n)).forEach(n => {
       const seen = new Set();
       noteTags(n.note).forEach(t => {
         const k = t.toLowerCase();
@@ -202,8 +232,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e) e.count++; else counts.set(k, { label: t, count: 1 });
       });
     });
-    tagFilters.forEach(k => {
-      if (!counts.has(k)) counts.set(k, { label: labels.get(k), count: 0 });
+    // Un tag coché reste affiché dans les deux sections (à 0 s'il n'a pas de note
+    // dans celle-ci) : on voit le filtre actif et on peut le décocher.
+    sel.forEach(k => {
+      if (!counts.has(k)) counts.set(k, { label: exist.active.get(k) || exist.done.get(k), count: 0 });
     });
 
     if (counts.size === 0) {
@@ -213,13 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Ordre stable : cocher un tag ne le déplace jamais.
+    // Les tags les plus récents d'abord ; cocher un tag ne le déplace jamais.
     const sorted = [...counts.entries()].sort((a, b) =>
-      b[1].count - a[1].count || a[1].label.localeCompare(b[1].label));
+      (created.get(a[0]) - created.get(b[0])) || a[1].label.localeCompare(b[1].label));
 
     tagBar.hidden = false;
     tagChips.innerHTML = sorted.map(([k, e]) =>
-      `<button type="button" class="tag-chip${tagFilters.has(k) ? ' active' : ''}" aria-pressed="${tagFilters.has(k)}" style="--h:${tagHue(k)}" data-tag="${escapeHtml(k)}" title="${tagFilters.has(k) ? 'Retirer' : 'Ajouter'} le filtre ${escapeHtml(e.label)}">${escapeHtml(e.label)}<span class="chip-count">${e.count}</span></button>`
+      `<button type="button" class="tag-chip${sel.has(k) ? ' active' : ''}" aria-pressed="${sel.has(k)}" style="--h:${tagHue(k)}" data-tag="${escapeHtml(k)}" title="${sel.has(k) ? 'Retirer' : 'Ajouter'} le filtre ${escapeHtml(e.label)}">${escapeHtml(e.label)}<span class="chip-count">${e.count}</span></button>`
     ).join('');
 
     // Repliée : une seule ligne ; le bouton « +N » indique les tags masqués.
@@ -227,9 +259,9 @@ document.addEventListener('DOMContentLoaded', () => {
     tagBar.classList.toggle('open', tagsExpanded);
     // Le bouton « Effacer » garde toujours sa place (visibilité seulement) :
     // la largeur de la ligne ne change donc pas quand on coche un tag.
-    tagClear.style.visibility = tagFilters.size ? 'visible' : 'hidden';
-    tagClear.title = tagFilters.size > 1
-      ? `Effacer les ${tagFilters.size} filtres`
+    tagClear.style.visibility = sel.size ? 'visible' : 'hidden';
+    tagClear.title = sel.size > 1
+      ? `Effacer les ${sel.size} filtres`
       : 'Effacer le filtre';
 
     let hidden = 0;
@@ -354,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function render(shouldSave = true) {
+    pruneTagFilters();
     listActive.innerHTML = '';
     listDone.innerHTML = '';
 
