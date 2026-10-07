@@ -15,19 +15,29 @@
           <span class="brand-sub" id="summary">Aucune note</span>
         </div>
       </div>
-      <button id="btn-export" class="btn-ghost" title="Exporter dump.jsonl">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Exporter
+      <button id="btn-settings" class="btn-ghost btn-icon" title="Paramètres" aria-label="Paramètres">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
     </header>
 
     <div id="status-message" class="toast" role="status"></div>
 
+    <div id="undo-bar" class="undo-bar" role="status" hidden>
+      <span id="undo-text"></span>
+      <button id="undo-btn" class="undo-btn">Annuler</button>
+    </div>
+
+    <div id="view-main" class="view">
     <div class="composer">
       <input type="text" id="new-note-input" placeholder="Nouvelle note…  [TAG] Texte" autocomplete="off" spellcheck="false">
       <button id="btn-add" class="btn-primary" title="Ajouter la note" aria-label="Ajouter">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
+    </div>
+
+    <div class="filters">
+      <input type="search" id="search-input" class="search-input" placeholder="Rechercher dans les notes…" autocomplete="off" spellcheck="false">
+      <div id="tag-bar" class="tag-bar" hidden></div>
     </div>
 
     <div class="segmented" role="tablist">
@@ -43,6 +53,51 @@
       <div id="list-active" class="note-list active"></div>
       <div id="list-done" class="note-list"></div>
     </main>
+    </div>
+
+    <!-- ========== Paramètres ========== -->
+    <section id="view-settings" class="view" hidden>
+      <div class="settings-head">
+        <button id="btn-settings-back" class="btn-ghost btn-icon" title="Retour" aria-label="Retour">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        <h2>Paramètres</h2>
+      </div>
+
+      <div class="card">
+        <h3>Exporter les données</h3>
+        <p class="card-desc">Télécharge toutes vos notes (en cours et traitées) dans un fichier <code>dump.jsonl</code>.</p>
+        <button id="btn-export" class="btn-secondary">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exporter <span id="export-count" class="muted"></span>
+        </button>
+      </div>
+
+      <div class="card">
+        <h3>Importer des données</h3>
+        <p class="card-desc">Charge un fichier <code>.jsonl</code> (ou <code>.json</code>) exporté depuis fnote.</p>
+
+        <input type="file" id="import-file" accept=".jsonl,.json,.txt,application/json,text/plain" hidden>
+        <div id="dropzone" class="dropzone" tabindex="0" role="button">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span><strong>Choisir un fichier</strong> ou le déposer ici</span>
+        </div>
+
+        <div id="import-preview" class="import-preview" hidden>
+          <div id="import-summary" class="import-summary"></div>
+          <div class="import-actions">
+            <button id="btn-import-merge" class="btn-primary-text">Fusionner</button>
+            <button id="btn-import-replace" class="btn-danger-text">Remplacer tout</button>
+            <button id="btn-import-cancel" class="btn-link">Annuler</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-foot">
+        <span id="app-version">fnote</span>
+        <button id="btn-open-tab" class="btn-link" title="À utiliser si la fenêtre se ferme pendant l'import">Ouvrir dans un onglet</button>
+      </div>
+    </section>
   </div>
 
   <script src="popup.js"></script>

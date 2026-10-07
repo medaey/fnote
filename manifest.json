@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "fnote",
-  "version": "2.0",
-  "description": "Interface moderne (thème clair, tags colorés, notes réorganisables) pour le gestionnaire de notes fnote",
+  "version": "2.1",
+  "description": "Interface moderne (thème clair, tags colorés, notes réorganisables, import/export) pour le gestionnaire de notes fnote",
   "permissions": [
     "storage"
   ],

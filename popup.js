@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let toastTimer = null;
   let skipAnim = false;
   let dragged = null;
+  let searchQuery = '';
+  let tagFilter = null; // clé de tag en minuscules
+  let undoSnapshot = null;
+  let undoTimer = null;
 
   const listActive = document.getElementById('list-active');
   const listDone = document.getElementById('list-done');
@@ -13,7 +17,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputNew = document.getElementById('new-note-input');
   const btnAdd = document.getElementById('btn-add');
   const btnExport = document.getElementById('btn-export');
+  const btnSettings = document.getElementById('btn-settings');
+  const btnSettingsBack = document.getElementById('btn-settings-back');
+  const viewMain = document.getElementById('view-main');
+  const viewSettings = document.getElementById('view-settings');
+  const exportCount = document.getElementById('export-count');
+  const importFile = document.getElementById('import-file');
+  const dropzone = document.getElementById('dropzone');
+  const importPreview = document.getElementById('import-preview');
+  const importSummary = document.getElementById('import-summary');
+  const btnImportMerge = document.getElementById('btn-import-merge');
+  const btnImportReplace = document.getElementById('btn-import-replace');
+  const btnImportCancel = document.getElementById('btn-import-cancel');
+  const btnOpenTab = document.getElementById('btn-open-tab');
+  const appVersion = document.getElementById('app-version');
+  let pendingImport = null;
   const statusMsg = document.getElementById('status-message');
+  const searchInput = document.getElementById('search-input');
+  const tagBar = document.getElementById('tag-bar');
+  const undoBar = document.getElementById('undo-bar');
+  const undoText = document.getElementById('undo-text');
+  const undoBtn = document.getElementById('undo-btn');
 
   const svg = (inner, sw = 2) =>
     `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
@@ -70,11 +94,31 @@ document.addEventListener('DOMContentLoaded', () => {
       String(now.getMinutes()).padStart(2, '0');
   }
 
-  function parseJsonl(text, shouldSave = true) {
-    const newNotes = [];
-    const lines = text.split(/\r?\n/);
+  // Convertit un texte (JSONL fnote, ou tableau JSON) en liste de notes.
+  function parseNotes(text) {
+    const result = [];
+    const clean = text.replace(/^\uFEFF/, '').trim();
 
-    lines.forEach(line => {
+    // Tolérance : un tableau JSON [{date, note, done?}, ...]
+    if (clean.startsWith('[')) {
+      try {
+        const arr = JSON.parse(clean);
+        if (Array.isArray(arr)) {
+          arr.forEach(obj => {
+            if (obj && (obj.note !== undefined || obj.text !== undefined)) {
+              result.push({
+                date: obj.date || nowString(),
+                note: String(obj.note || obj.text || ''),
+                done: !!obj.done
+              });
+            }
+          });
+          return result;
+        }
+      } catch (e) { /* on retombe sur le format JSONL */ }
+    }
+
+    clean.split(/\r?\n/).forEach(line => {
       const trimmed = line.trim();
       if (!trimmed) return;
 
@@ -89,24 +133,138 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const obj = JSON.parse(jsonStr);
         if (obj && (obj.note !== undefined || obj.text !== undefined)) {
-          newNotes.push({
+          result.push({
             date: obj.date || nowString(),
-            note: obj.note || obj.text || '',
-            done: isDone
+            note: String(obj.note || obj.text || ''),
+            done: isDone || obj.done === true
           });
         }
       } catch (e) {
-        newNotes.push({
+        result.push({
           date: nowString(),
-          note: trimmed.startsWith('#') ? trimmed.substring(1).trim() : trimmed,
-          done: trimmed.startsWith('#')
+          note: isDone ? jsonStr : trimmed,
+          done: isDone
         });
       }
     });
 
-    notes = newNotes;
+    return result.filter(n => n.note.trim() !== '');
+  }
+
+  function parseJsonl(text, shouldSave = true) {
+    notes = parseNotes(text);
     render(shouldSave);
   }
+
+  // ---------- Recherche & filtre par tag ----------
+  const fold = (s) => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+  function noteTags(text) {
+    const out = [];
+    const re = /\[([^\]]+)\]/g;
+    let m;
+    while ((m = re.exec(text))) out.push(m[1].trim());
+    return out;
+  }
+
+  function matches(n) {
+    if (tagFilter && !noteTags(n.note).some(t => t.toLowerCase() === tagFilter)) return false;
+    if (searchQuery && !fold(n.note).includes(fold(searchQuery))) return false;
+    return true;
+  }
+
+  function renderTagBar() {
+    const counts = new Map();
+    notes.forEach(n => {
+      const seen = new Set();
+      noteTags(n.note).forEach(t => {
+        const k = t.toLowerCase();
+        if (!k || seen.has(k)) return;
+        seen.add(k);
+        const e = counts.get(k);
+        if (e) e.count++; else counts.set(k, { label: t, count: 1 });
+      });
+    });
+
+    if (tagFilter && !counts.has(tagFilter)) tagFilter = null;
+
+    if (counts.size === 0) {
+      tagBar.hidden = true;
+      tagBar.innerHTML = '';
+      return;
+    }
+
+    const sorted = [...counts.entries()].sort((a, b) =>
+      b[1].count - a[1].count || a[1].label.localeCompare(b[1].label));
+
+    tagBar.hidden = false;
+    tagBar.innerHTML = sorted.map(([k, e]) =>
+      `<button type="button" class="tag-chip${k === tagFilter ? ' active' : ''}" style="--h:${tagHue(k)}" data-tag="${escapeHtml(k)}" title="Filtrer par ${escapeHtml(e.label)}">${escapeHtml(e.label)}<span class="chip-count">${e.count}</span></button>`
+    ).join('');
+  }
+
+  function toggleTagFilter(key) {
+    tagFilter = (tagFilter === key) ? null : key;
+    skipAnim = true;
+    render(false);
+    skipAnim = false;
+  }
+
+  tagBar.addEventListener('click', (e) => {
+    const chip = e.target.closest('[data-tag]');
+    if (chip) toggleTagFilter(chip.getAttribute('data-tag'));
+  });
+
+  searchInput.addEventListener('input', () => {
+    searchQuery = searchInput.value.trim();
+    editingIndex = null;
+    skipAnim = true;
+    render(false);
+    skipAnim = false;
+  });
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && searchInput.value) {
+      e.preventDefault();
+      searchInput.value = '';
+      searchQuery = '';
+      skipAnim = true;
+      render(false);
+      skipAnim = false;
+    }
+  });
+
+  function clearFilters() {
+    searchQuery = '';
+    tagFilter = null;
+    searchInput.value = '';
+  }
+
+  // ---------- Annuler ----------
+  const snapshot = () => notes.map(n => ({ ...n }));
+
+  function hideUndo() {
+    clearTimeout(undoTimer);
+    undoBar.hidden = true;
+    undoSnapshot = null;
+  }
+
+  function showUndo(text, snap) {
+    undoSnapshot = snap;
+    undoText.textContent = text;
+    undoBar.hidden = false;
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(hideUndo, 7000);
+  }
+
+  undoBtn.addEventListener('click', () => {
+    if (!undoSnapshot) return;
+    notes = undoSnapshot;
+    hideUndo();
+    editingIndex = null;
+    render(true);
+    exportCount.textContent = notes.length ? `(${notes.length})` : '';
+    showStatus('Action annulée');
+  });
 
   // Couleur automatique : le même tag donne toujours la même teinte
   // (insensible à la casse et aux espaces autour du tag).
@@ -120,8 +278,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return (h >>> 0) % 360;
   }
 
-  function emptyState(kind) {
+  function emptyState(kind, filtered = false) {
     const isActive = kind === 'active';
+    if (filtered) {
+      return `
+      <div class="empty">
+        ${icons.inbox}
+        <strong>Aucun résultat</strong>
+        <span>Essayez un autre mot-clé ou retirez le filtre.</span>
+      </div>`;
+    }
     return `
       <div class="empty">
         ${isActive ? icons.inbox : icons.done}
@@ -138,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let doneCount = 0;
 
     notes.forEach((item, index) => {
+      if (!matches(item) && editingIndex !== index) return;
       const div = document.createElement('div');
       div.className = 'note-item' + (item.done ? ' is-done' : '') + (skipAnim ? ' no-anim' : '');
       div.dataset.index = index;
@@ -160,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         let formattedText = escapeHtml(item.note);
         formattedText = formattedText.replace(/\[([^\]]+)\]/g,
-          (m, tag) => `<span class="note-tag" style="--h:${tagHue(tag)}">${tag}</span>`);
+          (m, tag) => `<span class="note-tag" data-tag="${tag.trim().toLowerCase()}" title="Filtrer par ce tag" style="--h:${tagHue(tag)}">${tag}</span>`);
 
         div.innerHTML = `
           <button class="drag-handle" title="Glisser pour réorganiser (ou ↑ ↓ au clavier)" aria-label="Déplacer la note" data-index="${index}">${icons.grip}</button>
@@ -191,14 +358,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    if (activeCount === 0) listActive.innerHTML = emptyState('active');
-    if (doneCount === 0) listDone.innerHTML = emptyState('done');
+    const filtering = !!(tagFilter || searchQuery);
+    if (activeCount === 0) listActive.innerHTML = emptyState('active', filtering && notes.length > 0);
+    if (doneCount === 0) listDone.innerHTML = emptyState('done', filtering && notes.length > 0);
 
     countActive.textContent = activeCount;
     countDone.textContent = doneCount;
-    summary.textContent = notes.length === 0
-      ? 'Aucune note'
-      : `${notes.length} note${notes.length > 1 ? 's' : ''} · ${activeCount} en cours`;
+
+    const totalActive = notes.filter(n => !n.done).length;
+    if (notes.length === 0) {
+      summary.textContent = 'Aucune note';
+    } else if (filtering) {
+      const found = activeCount + doneCount;
+      summary.textContent = `${found} résultat${found > 1 ? 's' : ''} sur ${notes.length}`;
+    } else {
+      summary.textContent = `${notes.length} note${notes.length > 1 ? 's' : ''} · ${totalActive} en cours`;
+    }
+
+    renderTagBar();
 
     if (editingIndex !== null) {
       const editInput = document.getElementById(`edit-input-${editingIndex}`);
@@ -246,6 +423,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.addEventListener('click', (e) => {
+    const tagEl = e.target.closest('.note-item .note-tag[data-tag]');
+    if (tagEl) {
+      toggleTagFilter(tagEl.getAttribute('data-tag'));
+      return;
+    }
+
     const actionTarget = e.target.closest('[data-action]');
     if (!actionTarget) return;
 
@@ -263,8 +446,10 @@ document.addEventListener('DOMContentLoaded', () => {
       notes[index].done = !notes[index].done;
       render(true);
     } else if (action === 'delete') {
+      const snap = snapshot();
       notes.splice(index, 1);
       render(true);
+      showUndo('Note supprimée', snap);
     }
   });
 
@@ -274,8 +459,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // elles reprennent les "emplacements" qu'elles occupaient dans le tableau,
   // l'autre liste n'est pas touchée.
   function applyOrder(done, newIndexOrder) {
-    const slots = [];
-    notes.forEach((n, i) => { if (n.done === done) slots.push(i); });
+    // Les notes visibles reprennent, dans le nouvel ordre, les emplacements
+    // qu'elles occupaient (les notes masquées par un filtre ne bougent pas).
+    const slots = newIndexOrder.slice().sort((a, b) => a - b);
     const old = notes.slice();
     newIndexOrder.forEach((oldIdx, k) => { notes[slots[k]] = old[oldIdx]; });
   }
@@ -283,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function moveNote(index, dir) {
     const done = notes[index].done;
     let j = index + dir;
-    while (j >= 0 && j < notes.length && notes[j].done !== done) j += dir;
+    while (j >= 0 && j < notes.length && (notes[j].done !== done || !matches(notes[j]))) j += dir;
     if (j < 0 || j >= notes.length) return;
     [notes[index], notes[j]] = [notes[j], notes[index]];
     editingIndex = null;
@@ -391,6 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     inputNew.value = '';
+    clearFilters();
     render(true);
   }
 
@@ -399,6 +586,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') addNote();
   });
 
+  // ---------- Paramètres : navigation ----------
+  function showSettings(show) {
+    viewMain.hidden = show;
+    viewSettings.hidden = !show;
+    btnSettings.hidden = show;
+    if (show) {
+      exportCount.textContent = notes.length ? `(${notes.length})` : '';
+      resetImport();
+    } else {
+      render(false);
+    }
+  }
+
+  btnSettings.addEventListener('click', () => showSettings(true));
+  btnSettingsBack.addEventListener('click', () => showSettings(false));
+
+  appVersion.textContent = 'fnote v' + chrome.runtime.getManifest().version;
+
+  // Si le sélecteur de fichier ferme la fenêtre de l'extension, on peut
+  // faire l'import depuis un onglet complet.
+  const isTab = new URLSearchParams(location.search).has('tab');
+  if (isTab) {
+    document.body.classList.add('in-tab');
+    btnOpenTab.hidden = true;
+    showSettings(true);
+  }
+  btnOpenTab.addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('popup.html?tab=1') });
+  });
+
+  // ---------- Export ----------
   btnExport.addEventListener('click', () => {
     if (notes.length === 0) {
       showStatus('Aucune note à exporter', true);
@@ -411,9 +629,127 @@ document.addEventListener('DOMContentLoaded', () => {
     a.href = url;
     a.download = 'dump.jsonl';
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     showStatus('Exportation réussie !');
   });
+
+  // ---------- Import ----------
+  const noteKey = (n) => n.date + '\u0000' + n.note;
+
+  function resetImport() {
+    pendingImport = null;
+    importFile.value = '';
+    importPreview.hidden = true;
+    dropzone.hidden = false;
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      showStatus('Fichier trop volumineux (max 10 Mo)', true);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => showStatus('Lecture du fichier impossible', true);
+    reader.onload = () => {
+      const imported = parseNotes(String(reader.result));
+      if (imported.length === 0) {
+        showStatus('Aucune note valide dans ce fichier', true);
+        resetImport();
+        return;
+      }
+
+      const existing = new Set(notes.map(noteKey));
+      const fresh = [];
+      imported.forEach(n => {
+        const k = noteKey(n);
+        if (!existing.has(k)) { existing.add(k); fresh.push(n); }
+      });
+
+      pendingImport = { imported, fresh };
+      const doneCount = imported.filter(n => n.done).length;
+      importSummary.innerHTML =
+        `<strong>${escapeHtml(file.name)}</strong><br>` +
+        `${imported.length} note${imported.length > 1 ? 's' : ''} trouvée${imported.length > 1 ? 's' : ''} ` +
+        `(${imported.length - doneCount} en cours, ${doneCount} traitée${doneCount > 1 ? 's' : ''})<br>` +
+        `<span class="muted">${fresh.length} nouvelle${fresh.length > 1 ? 's' : ''}, ` +
+        `${imported.length - fresh.length} déjà présente${imported.length - fresh.length > 1 ? 's' : ''}</span>`;
+      btnImportMerge.textContent = `Fusionner (+${fresh.length})`;
+      btnImportMerge.disabled = fresh.length === 0;
+      btnImportReplace.textContent = `Remplacer tout (${notes.length} → ${imported.length})`;
+      dropzone.hidden = true;
+      importPreview.hidden = false;
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  // Dans la popup, le sélecteur de fichier lui fait perdre le focus et la
+  // ferme avant la fin de l'import : on ouvre donc un onglet dédié, où
+  // l'import fonctionne normalement.
+  function openPicker() {
+    if (!isTab) {
+      chrome.tabs.create({ url: chrome.runtime.getURL('popup.html?tab=1&import=1') });
+      window.close();
+      return;
+    }
+    importFile.click();
+  }
+
+  if (!isTab) {
+    const label = dropzone.querySelector('span');
+    if (label) label.innerHTML = '<strong>Choisir un fichier</strong> (s\'ouvre dans un onglet)';
+  }
+
+  dropzone.addEventListener('click', openPicker);
+  dropzone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); }
+  });
+  importFile.addEventListener('change', () => handleFile(importFile.files[0]));
+
+  if (isTab) ['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, (e) => {
+    e.preventDefault();
+    dropzone.classList.add('over');
+  }));
+  if (isTab) ['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('over');
+  }));
+  if (isTab) dropzone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
+
+  btnImportMerge.addEventListener('click', () => {
+    if (!pendingImport) return;
+    const added = pendingImport.fresh.length;
+    const snap = snapshot();
+    notes = notes.concat(pendingImport.fresh);
+    editingIndex = null;
+    saveToStorage();
+    exportCount.textContent = `(${notes.length})`;
+    resetImport();
+    showUndo(`${added} note${added > 1 ? 's' : ''} importée${added > 1 ? 's' : ''}`, snap);
+  });
+
+  btnImportReplace.addEventListener('click', () => {
+    if (!pendingImport) return;
+    const total = pendingImport.imported.length;
+    const snap = snapshot();
+    notes = pendingImport.imported.slice();
+    editingIndex = null;
+    saveToStorage();
+    exportCount.textContent = `(${notes.length})`;
+    resetImport();
+    showUndo(`Données remplacées (${total} note${total > 1 ? 's' : ''})`, snap);
+  });
+
+  btnImportCancel.addEventListener('click', resetImport);
+
+  // Arrivée depuis la popup : on tente d'ouvrir directement le sélecteur.
+  // Chrome peut le refuser sans clic dans l'onglet ; la zone est alors
+  // mise en évidence pour que l'utilisateur sache où cliquer.
+  if (isTab && new URLSearchParams(location.search).has('import')) {
+    dropzone.classList.add('over');
+    try { importFile.click(); } catch (e) { /* bloqué : clic manuel */ }
+    importFile.addEventListener('change', () => dropzone.classList.remove('over'), { once: true });
+  }
 
   function escapeHtml(str) {
     return String(str).replace(/[&<>'"]/g,
