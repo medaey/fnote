@@ -70,7 +70,8 @@ html {
 
 body {
   width: 380px;
-  min-height: 480px;
+  height: 560px;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-size: 14px;
@@ -80,8 +81,9 @@ body {
 .app {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 18px 16px 16px;
+  gap: 12px;
+  height: 100%;
+  padding: 16px 16px 12px;
 }
 
 .icon {
@@ -284,11 +286,11 @@ body {
 
 /* ---------- List ---------- */
 .content {
-  min-height: 250px;
-  max-height: 340px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  margin: 0 -4px;
-  padding: 2px 4px 4px;
+  margin: 0 -8px;
+  padding: 0 8px 4px;
 }
 
 .content::-webkit-scrollbar {
@@ -535,6 +537,31 @@ body {
   gap: 14px;
 }
 
+#view-main {
+  flex: 1;
+  min-height: 0;
+}
+
+#view-settings {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 -8px;
+  padding: 0 8px 4px;
+}
+
+#view-settings::-webkit-scrollbar { width: 8px; }
+#view-settings::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+  border: 2px solid var(--bg);
+}
+
+body.has-undo .content,
+body.has-undo #view-settings {
+  padding-bottom: 64px;
+}
+
 .view[hidden],
 [hidden] {
   display: none !important;
@@ -542,7 +569,7 @@ body {
 
 body.in-tab {
   margin: 0 auto;
-  min-height: 100vh;
+  height: 100vh;
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
 }
@@ -754,14 +781,56 @@ code {
 
 .tag-bar {
   display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
+  padding: 2px 0 10px;
+}
+
+.tag-bar.open {
+  position: static;
+}
+
+.tag-chips {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 3px;
-  scrollbar-width: thin;
+  flex: 1;
+  min-width: 0;
+  max-height: 22px;
+  overflow: hidden;
+}
+
+.tag-chips.expanded {
+  max-height: none;
+  overflow: visible;
+}
+
+.tag-toggle {
+  flex-shrink: 0;
+  height: 22px;
+  padding: 0 9px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  border: none;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tag-toggle:hover {
+  background: var(--border-strong);
+  color: var(--text);
 }
 
 .tag-chip {
   --h: 160;
+  height: 22px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -835,3 +904,10 @@ body.in-tab .undo-bar {
 }
 
 .undo-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+/* ---------- v2.2 : sélection multiple de tags ---------- */
+.tag-clear {
+  width: 22px;
+  padding: 0;
+  color: var(--danger);
+}

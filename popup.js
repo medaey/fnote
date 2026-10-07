@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let skipAnim = false;
   let dragged = null;
   let searchQuery = '';
-  let tagFilter = null; // clé de tag en minuscules
+  const tagFilters = new Set(); // clés de tags (minuscules) cochés — une note passe si elle a AU MOINS UN de ces tags
   let undoSnapshot = null;
   let undoTimer = null;
 
@@ -35,6 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusMsg = document.getElementById('status-message');
   const searchInput = document.getElementById('search-input');
   const tagBar = document.getElementById('tag-bar');
+  const tagChips = document.getElementById('tag-chips');
+  const tagToggle = document.getElementById('tag-toggle');
+  const tagClear = document.getElementById('tag-clear');
+  let tagsExpanded = false;
   const undoBar = document.getElementById('undo-bar');
   const undoText = document.getElementById('undo-text');
   const undoBtn = document.getElementById('undo-btn');
@@ -167,15 +171,28 @@ document.addEventListener('DOMContentLoaded', () => {
     return out;
   }
 
+  function matchesSearch(n) {
+    return !searchQuery || fold(n.note).includes(fold(searchQuery));
+  }
+
   function matches(n) {
-    if (tagFilter && !noteTags(n.note).some(t => t.toLowerCase() === tagFilter)) return false;
-    if (searchQuery && !fold(n.note).includes(fold(searchQuery))) return false;
-    return true;
+    if (tagFilters.size && !noteTags(n.note).some(t => tagFilters.has(t.toLowerCase()))) return false;
+    return matchesSearch(n);
   }
 
   function renderTagBar() {
+    // Libellés de tous les tags existants (pour garder le tag actif même sans résultat)
+    const labels = new Map();
+    notes.forEach(n => noteTags(n.note).forEach(t => {
+      const k = t.toLowerCase();
+      if (k && !labels.has(k)) labels.set(k, t);
+    }));
+    [...tagFilters].forEach(k => { if (!labels.has(k)) tagFilters.delete(k); });
+
+    // Les tags proposés sont ceux des notes qui correspondent à la RECHERCHE
+    // (pas aux tags cochés), pour pouvoir en cocher plusieurs.
     const counts = new Map();
-    notes.forEach(n => {
+    notes.filter(matchesSearch).forEach(n => {
       const seen = new Set();
       noteTags(n.note).forEach(t => {
         const k = t.toLowerCase();
@@ -185,26 +202,64 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e) e.count++; else counts.set(k, { label: t, count: 1 });
       });
     });
-
-    if (tagFilter && !counts.has(tagFilter)) tagFilter = null;
+    tagFilters.forEach(k => {
+      if (!counts.has(k)) counts.set(k, { label: labels.get(k), count: 0 });
+    });
 
     if (counts.size === 0) {
       tagBar.hidden = true;
-      tagBar.innerHTML = '';
+      tagChips.innerHTML = '';
+      tagsExpanded = false;
       return;
     }
 
+    // Ordre stable : cocher un tag ne le déplace jamais.
     const sorted = [...counts.entries()].sort((a, b) =>
       b[1].count - a[1].count || a[1].label.localeCompare(b[1].label));
 
     tagBar.hidden = false;
-    tagBar.innerHTML = sorted.map(([k, e]) =>
-      `<button type="button" class="tag-chip${k === tagFilter ? ' active' : ''}" style="--h:${tagHue(k)}" data-tag="${escapeHtml(k)}" title="Filtrer par ${escapeHtml(e.label)}">${escapeHtml(e.label)}<span class="chip-count">${e.count}</span></button>`
+    tagChips.innerHTML = sorted.map(([k, e]) =>
+      `<button type="button" class="tag-chip${tagFilters.has(k) ? ' active' : ''}" aria-pressed="${tagFilters.has(k)}" style="--h:${tagHue(k)}" data-tag="${escapeHtml(k)}" title="${tagFilters.has(k) ? 'Retirer' : 'Ajouter'} le filtre ${escapeHtml(e.label)}">${escapeHtml(e.label)}<span class="chip-count">${e.count}</span></button>`
     ).join('');
+
+    // Repliée : une seule ligne ; le bouton « +N » indique les tags masqués.
+    tagChips.classList.toggle('expanded', tagsExpanded);
+    tagBar.classList.toggle('open', tagsExpanded);
+    // Le bouton « Effacer » garde toujours sa place (visibilité seulement) :
+    // la largeur de la ligne ne change donc pas quand on coche un tag.
+    tagClear.style.visibility = tagFilters.size ? 'visible' : 'hidden';
+    tagClear.title = tagFilters.size > 1
+      ? `Effacer les ${tagFilters.size} filtres`
+      : 'Effacer le filtre';
+
+    let hidden = 0;
+    if (!tagsExpanded) {
+      // On mesure avec le bouton « +N » déjà en place (il réduit la largeur disponible).
+      tagToggle.hidden = false;
+      tagToggle.textContent = '+0';
+      const chips = [...tagChips.children];
+      const top = chips[0].offsetTop;
+      hidden = chips.filter(c => c.offsetTop > top + 2).length;
+    }
+    tagToggle.hidden = !(tagsExpanded || hidden > 0);
+    tagToggle.textContent = tagsExpanded ? 'Réduire' : `+${hidden}`;
+    tagToggle.title = tagsExpanded ? 'Réduire la liste des tags' : 'Afficher tous les tags';
   }
 
+  tagClear.addEventListener('click', () => {
+    tagFilters.clear();
+    skipAnim = true;
+    render(false);
+    skipAnim = false;
+  });
+
+  tagToggle.addEventListener('click', () => {
+    tagsExpanded = !tagsExpanded;
+    renderTagBar();
+  });
+
   function toggleTagFilter(key) {
-    tagFilter = (tagFilter === key) ? null : key;
+    if (tagFilters.has(key)) tagFilters.delete(key); else tagFilters.add(key);
     skipAnim = true;
     render(false);
     skipAnim = false;
@@ -235,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function clearFilters() {
     searchQuery = '';
-    tagFilter = null;
+    tagFilters.clear();
     searchInput.value = '';
   }
 
@@ -245,6 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function hideUndo() {
     clearTimeout(undoTimer);
     undoBar.hidden = true;
+    document.body.classList.remove('has-undo');
     undoSnapshot = null;
   }
 
@@ -252,6 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     undoSnapshot = snap;
     undoText.textContent = text;
     undoBar.hidden = false;
+    document.body.classList.add('has-undo');
     clearTimeout(undoTimer);
     undoTimer = setTimeout(hideUndo, 7000);
   }
@@ -358,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    const filtering = !!(tagFilter || searchQuery);
+    const filtering = !!(tagFilters.size || searchQuery);
     if (activeCount === 0) listActive.innerHTML = emptyState('active', filtering && notes.length > 0);
     if (doneCount === 0) listDone.innerHTML = emptyState('done', filtering && notes.length > 0);
 

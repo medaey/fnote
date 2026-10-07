@@ -37,7 +37,7 @@
 
     <div class="filters">
       <input type="search" id="search-input" class="search-input" placeholder="Rechercher dans les notes…" autocomplete="off" spellcheck="false">
-      <div id="tag-bar" class="tag-bar" hidden></div>
+
     </div>
 
     <div class="segmented" role="tablist">
@@ -50,6 +50,11 @@
     </div>
 
     <main class="content">
+      <div id="tag-bar" class="tag-bar" hidden>
+        <div id="tag-chips" class="tag-chips"></div>
+        <button type="button" id="tag-clear" class="tag-toggle tag-clear" aria-label="Effacer les filtres" style="visibility:hidden">✕</button>
+        <button type="button" id="tag-toggle" class="tag-toggle" hidden></button>
+      </div>
       <div id="list-active" class="note-list active"></div>
       <div id="list-done" class="note-list"></div>
     </main>

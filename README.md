@@ -24,7 +24,8 @@ Avec **fnote**, vous n'avez plus besoin d'ouvrir une application lourde, de cher
 * ✏️ **Édition rapide** — modifiez vos notes directement depuis l'interface.
 * ↕️ **Réorganisation** — déplacez librement vos notes et conservez leur ordre.
 * 🔄 **États** — marquez vos notes comme *En cours* ou *Traitées*.
-* 🔍 **Recherche & filtre par tag** *(v2.1)* — barre de recherche (insensible aux accents) et puces de tags cliquables, ou clic direct sur un tag dans une note.
+* 🔍 **Recherche & filtre par tags** *(v2.1)* — barre de recherche (insensible aux accents) et puces de tags cliquables, ou clic direct sur un tag dans une note.
+* ☑️ **Sélection multiple de tags** *(v2.2)* — cochez plusieurs tags : les notes ayant au moins l'un d'eux s'affichent. Les tags proposés suivent la recherche.
 * ↩️ **Annuler** *(v2.1)* — retour en arrière après une suppression ou un import.
 * 🌙 **Thème sombre automatique** *(v2.1)* — suit le réglage de votre système.
 * ⚙️ **Menu Paramètres** *(v2.1)* — accessible via l'engrenage en haut à droite.
