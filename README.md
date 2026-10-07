@@ -1,8 +1,16 @@
-# 🧠 fnote
+# 🧠 fnote – Extension de Brain Dump & Prise de Notes Rapides
 
-> **Capturez vos idées et tâches en quelques secondes.**
+> **Trop d'idées en tête ? Ne laissez plus la surcharge mentale freiner votre productivité. Videz votre esprit instantanément avec fnote.**
 
-**fnote** est une extension de navigateur minimaliste pour prendre rapidement des notes, tâches et idées.
+---
+
+## 🚀 Qu'est-ce que fnote ?
+
+**fnote** est une extension web ultra-légère, rapide et minimaliste conçue pour une tâche essentielle : **faire un "brain dump" immédiat**.
+
+Lorsque vous naviguez sur le web, travaillez sur un projet, lisez un article ou enchaînez les réunions, les idées, tâches, rappels et informations s'accumulent très vite. Tenter de tout retenir crée une fatigue cognitive et nuit à votre concentration.
+
+Avec **fnote**, vous n'avez plus besoin d'ouvrir une application lourde, de chercher un bloc-notes ou d'ouvrir un nouvel onglet : **un simple clic sur l'icône de l'extension suffit pour capturer votre pensée et libérer votre esprit.**
 
 <p align="center">
   <img src="preview.png" alt="Aperçu de fnote" width="600"/>
